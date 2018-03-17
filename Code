@@ -1,0 +1,66 @@
+import os
+import numpy as np
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+
+def most_common(directory):
+    dictionary= {}
+    for mails in os.listdir(directory):
+        with open(directory+ '/'+ mails) as mail:
+            for line in mail:
+                for word in line.split():
+                    if word in dictionary:
+                        dictionary[word]= dictionary[word]+ 1
+                    elif word not in dictionary:
+                        dictionary[word]= 1
+    keys= list(dictionary.keys())
+    for key in keys:
+        if not key.isalpha() or len(key)== 1:
+            del dictionary[key]
+    newdict= sorted(dictionary, key= lambda key: dictionary[key], reverse= True)[:3000]
+    return newdict
+    
+def extract_features(directory, dictionary):
+    mailsList= os.listdir(directory)
+    feature_matrix= np.zeros((len(mailsList), len(dictionary)))
+    labels= np.zeros(len(mailsList))
+    MailID= 0
+    for mails in mailsList:
+        with open(directory+ '/'+ mails) as mail:
+            for c, line in enumerate(mail, 1):
+                if c== 3:
+                    wordDict= {}
+                    words= line.split()
+                    for word in words:
+                        if word in wordDict:
+                            wordDict[word]= wordDict[word]+ 1
+                        elif word not in wordDict:
+                            wordDict[word]= 1
+                    for word in wordDict:
+                        for i, key in enumerate(dictionary):
+                            if key== word:
+                                feature_matrix[MailID, i]= wordDict[word]     
+        if mails[:5]== 'spmsg':
+            labels[MailID]= 1
+        
+        MailID= MailID+ 1
+    
+    return(feature_matrix, labels)
+    
+
+
+test_directory= '.../test-mails'
+train_directory= '.../train-mails'
+
+dictionary= most_common(train_directory)
+
+train_matrix, train_labels= extract_features(train_directory, dictionary)
+test_matrix, test_labels= extract_features(test_directory, dictionary)
+
+model= GaussianNB()
+
+model.fit(train_matrix, train_labels)
+
+predict_labels= model.predict(test_matrix)
+
+print(accuracy_score(test_labels, predict_labels))
