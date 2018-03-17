@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 
+
+# define a function to extract the most common 3000 words from the emails.
 def most_common(directory):
     dictionary= {}
     for mails in os.listdir(directory):
@@ -19,7 +21,9 @@ def most_common(directory):
             del dictionary[key]
     newdict= sorted(dictionary, key= lambda key: dictionary[key], reverse= True)[:3000]
     return newdict
-    
+ 
+ 
+# define a function to extract the word count of each word in the email and the label associated with each email.
 def extract_features(directory, dictionary):
     mailsList= os.listdir(directory)
     feature_matrix= np.zeros((len(mailsList), len(dictionary)))
